@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoGrid — Painel de Energias Renováveis</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #0a0f0a;
+  --surf:    #111811;
+  --card:    #161e16;
+  --border:  #243024;
+  --green:   #4ade80;
+  --teal:    #2dd4bf;
+  --yellow:  #facc15;
+  --blue:    #60a5fa;
+  --red:     #f87171;
+  --text:    #e2f0e2;
+  --muted:   #6b8a6b;
+  --mono:    'Space Mono', monospace;
+  --sans:    'DM Sans', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;}
+
+/* ── HEADER ── */
+header{
+  background:var(--surf);border-bottom:1px solid var(--border);
+  padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+.logo{font-family:var(--mono);font-size:.95rem;color:var(--green);}
+.logo span{color:var(--muted);}
+.header-stats{display:flex;gap:2rem;}
+.hstat{text-align:right;}
+.hstat-val{font-family:var(--mono);font-size:1rem;color:var(--green);font-weight:700;}
+.hstat-lbl{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;}
+
+/* ── LAYOUT ── */
+main{max-width:1100px;margin:0 auto;padding:2rem;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.4rem;}
+.card-title{font-family:var(--mono);font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;}
+
+/* ── STAT CARDS ── */
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.2rem;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.stat-card.s1::before{background:var(--green);}
+.stat-card.s2::before{background:var(--teal);}
+.stat-card.s3::before{background:var(--yellow);}
+.stat-card.s4::before{background:var(--blue);}
+.stat-icon{font-size:1.6rem;margin-bottom:.5rem;}
+.stat-val{font-family:var(--mono);font-size:1.5rem;font-weight:700;line-height:1.1;margin-bottom:.2rem;}
+.stat-card.s1 .stat-val{color:var(--green);}
+.stat-card.s2 .stat-val{color:var(--teal);}
+.stat-card.s3 .stat-val{color:var(--yellow);}
+.stat-card.s4 .stat-val{color:var(--blue);}
+.stat-lbl{font-size:.75rem;color:var(--muted);}
+
+/* ── FORMULÁRIO ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+.form-group{display:flex;flex-direction:column;gap:.4rem;}
+.form-group.full{grid-column:1/-1;}
+label{font-size:.72rem;color:var(--muted);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;}
+input,select{
+  background:#0d130d;border:1px solid var(--border);border-radius:6px;
+  color:var(--text);padding:.6rem .85rem;font-size:.9rem;font-family:var(--sans);
+  outline:none;transition:border-color .2s;
+}
+input:focus,select:focus{border-color:var(--green);}
+select option{background:var(--card);}
+.btn{
+  padding:.65rem 1.2rem;border:none;border-radius:6px;cursor:pointer;
+  font-family:var(--sans);font-weight:700;font-size:.88rem;transition:all .2s;
+}
+.btn-primary{background:var(--green);color:#0a0f0a;}
+.btn-primary:hover{background:#22c55e;}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+.btn-ghost:hover{color:var(--text);border-color:var(--muted);}
+.btn-danger{background:transparent;color:var(--red);border:1px solid rgba(248,113,113,.3);padding:.4rem .7rem;font-size:.78rem;}
+.btn-danger:hover{background:rgba(248,113,113,.1);}
+.btn-row{display:flex;gap:.6rem;margin-top:.75rem;}
+#tipo-info{
+  background:#0d130d;border:1px solid var(--border);border-radius:6px;
+  padding:.65rem .85rem;font-size:.8rem;color:var(--muted);font-family:var(--mono);
+  min-height:2.4rem;
+}
+
+/* ── LISTA DE FONTES ── */
+.fonte-lista{display:flex;flex-direction:column;gap:.7rem;max-height:420px;overflow-y:auto;padding-right:.3rem;}
+.fonte-lista::-webkit-scrollbar{width:4px;}
+.fonte-lista::-webkit-scrollbar-track{background:transparent;}
+.fonte-lista::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.fonte-item{
+  background:var(--surf);border:1px solid var(--border);border-radius:8px;
+  padding:1rem 1.2rem;display:flex;align-items:center;gap:1rem;
+  transition:border-color .2s;
+}
+.fonte-item:hover{border-color:var(--muted);}
+.fonte-icone{font-size:1.8rem;flex-shrink:0;width:2.5rem;text-align:center;}
+.fonte-info{flex:1;min-width:0;}
+.fonte-nome{font-weight:700;font-size:.95rem;margin-bottom:.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fonte-tipo{font-family:var(--mono);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;}
+.s1 .fonte-tipo{color:var(--green);}
+.s2 .fonte-tipo{color:var(--teal);}
+.s3 .fonte-tipo{color:var(--yellow);}
+.s4 .fonte-tipo{color:var(--blue);}
+.fonte-stats{display:flex;gap:1rem;flex-shrink:0;}
+.fstat{text-align:right;}
+.fstat-val{font-family:var(--mono);font-size:.85rem;font-weight:700;color:var(--text);}
+.fstat-lbl{font-size:.65rem;color:var(--muted);}
+.fonte-vazia{color:var(--muted);font-size:.9rem;text-align:center;padding:2.5rem 0;font-style:italic;}
+
+/* ── PILHA / HISTÓRICO ── */
+.historico{display:flex;flex-direction:column;gap:.5rem;max-height:200px;overflow-y:auto;}
+.hist-item{
+  display:flex;align-items:center;gap:.6rem;
+  padding:.5rem .7rem;background:var(--surf);border-radius:5px;
+  font-size:.78rem;font-family:var(--mono);border:1px solid var(--border);
+}
+.hist-icone{font-size:1rem;}
+.hist-texto{flex:1;color:var(--muted);}
+.hist-vazia{color:var(--muted);font-size:.8rem;text-align:center;padding:1rem 0;font-style:italic;}
+
+/* ── BARRA DE CAPACIDADE ── */
+.capacidade-bar{margin-top:1rem;}
+.bar-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem;}
+.bar-label{font-size:.75rem;font-family:var(--mono);width:70px;flex-shrink:0;}
+.bar-track{flex:1;height:8px;background:#1a221a;border-radius:4px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;transition:width .5s ease;}
+.bar-val{font-size:.7rem;font-family:var(--mono);color:var(--muted);width:55px;text-align:right;flex-shrink:0;}
+
+/* ── FOOTER ── */
+footer{
+  border-top:1px solid var(--border);padding:1.5rem 2rem;
+  font-family:var(--mono);font-size:.65rem;color:var(--muted);
+  text-align:center;letter-spacing:.06em;margin-top:2rem;
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  .grid-2,.grid-4{grid-template-columns:1fr;}
+  .form-grid{grid-template-columns:1fr;}
+  .header-stats{display:none;}
+  .fonte-stats{display:none;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🌿 EcoGrid <span>// Painel de Energias Renováveis</span></div>
+  <div class="header-stats">
+    <div class="hstat">
+      <div class="hstat-val" id="hdr-fontes">0</div>
+      <div class="hstat-lbl">Fontes</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-val" id="hdr-kw">0 kW</div>
+      <div class="hstat-lbl">Capacidade</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-val" id="hdr-co2">0 t</div>
+      <div class="hstat-lbl">CO₂ evitado/ano</div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- STAT CARDS -->
+  <div class="grid-4">
+    <div class="stat-card s1">
+      <div class="stat-icon">⚡</div>
+      <div class="stat-val" id="stat-capacidade">0 kW</div>
+      <div class="stat-lbl">Capacidade Total</div>
+    </div>
+    <div class="stat-card s2">
+      <div class="stat-icon">🔋</div>
+      <div class="stat-val" id="stat-producao">0 MWh</div>
+      <div class="stat-lbl">Produção Anual</div>
+    </div>
+    <div class="stat-card s3">
+      <div class="stat-icon">🌍</div>
+      <div class="stat-val" id="stat-co2">0 t</div>
+      <div class="stat-lbl">CO₂ Evitado/ano</div>
+    </div>
+    <div class="stat-card s4">
+      <div class="stat-icon">🏭</div>
+      <div class="stat-val" id="stat-fontes">0</div>
+      <div class="stat-lbl">Fontes Cadastradas</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+
+    <!-- ADICIONAR FONTE -->
+    <div class="card">
+      <div class="card-title">Adicionar Fonte de Energia</div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Tipo de Energia</label>
+          <select id="tipo" onchange="atualizarTipoInfo()">
+            <option value="solar">☀️ Solar</option>
+            <option value="eolica">💨 Eólica</option>
+            <option value="hidrica">💧 Hídrica</option>
+            <option value="biomassa">🌿 Biomassa</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Descrição do Tipo</label>
+          <div id="tipo-info">☀️ Solar — Painéis fotovoltaicos convertem luz solar em energia elétrica. Ideal para instalações residenciais e comerciais.</div>
+        </div>
+        <div class="form-group full">
+          <label>Nome da Instalação</label>
+          <input type="text" id="nome" placeholder="Ex: Usina Solar Norte">
+        </div>
+        <div class="form-group">
+          <label>Capacidade (kW)</label>
+          <input type="number" id="capacidade" placeholder="Ex: 100" min="0.1" step="0.1">
+        </div>
+        <div class="form-group">
+          <label>Custo de Instalação (R$)</label>
+          <input type="number" id="custo" placeholder="Ex: 500000" min="0">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="adicionarFonte()">+ Adicionar</button>
+        <button class="btn btn-ghost" onclick="desfazer()">↩ Desfazer</button>
+      </div>
+    </div>
+
+    <!-- DISTRIBUIÇÃO POR TIPO -->
+    <div class="card">
+      <div class="card-title">Distribuição por Tipo (kW)</div>
+      <div class="capacidade-bar" id="barras-tipos">
+        <div style="color:var(--muted);font-size:.85rem;text-align:center;padding:2rem 0;">Nenhuma fonte cadastrada ainda.</div>
+      </div>
+      <div class="card-title" style="margin-top:1.5rem;">Pilha de Histórico</div>
+      <div class="historico" id="historico">
+        <div class="hist-vazia">Nenhuma ação registrada.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- LISTA DE FONTES -->
+  <div class="card">
+    <div class="card-title">Fontes Cadastradas — Lista de Energias Renováveis</div>
+    <div class="fonte-lista" id="fonte-lista">
+      <div class="fonte-vazia">Nenhuma fonte adicionada. Use o formulário acima para começar.</div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  EcoGrid — AEP · Energias Renováveis · UniCesumar 2026 · Eduardo H. · Rafael C. · Cauê L.
+  &nbsp;|&nbsp; OOP + Lista + Pilha
+</footer>
+
+<script>
+// ════════════════════════════════════════════════
+// MODELAGEM ORIENTADA A OBJETOS
+// ════════════════════════════════════════════════
+
+class FonteDeEnergia {
+  constructor(id, nome, tipo, capacidadeKW, custoInstalacao) {
+    this.id              = id;
+    this.nome            = nome;
+    this.tipo            = tipo;
+    this.capacidadeKW    = parseFloat(capacidadeKW);
+    this.custoInstalacao = parseFloat(custoInstalacao) || 0;
+  }
+
+  get icone() { return '⚡'; }
+  get corClasse() { return 's1'; }
+  get fatorHoras() { return 4000; }
+
+  calcularProducaoAnual() {
+    return (this.capacidadeKW * this.fatorHoras) / 1000; // MWh
+  }
+
+  calcularReducaoCO2() {
+    return this.calcularProducaoAnual() * 0.5; // toneladas de CO₂ (fator médio BR)
+  }
+
+  toJSON() {
+    return {
+      id: this.id, nome: this.nome, tipo: this.tipo,
+      capacidadeKW: this.capacidadeKW, custoInstalacao: this.custoInstalacao
+    };
+  }
+}
+
+class EnergiaSolar extends FonteDeEnergia {
+  constructor(id, nome, capacidadeKW, custo) {
+    super(id, nome, 'Solar', capacidadeKW, custo);
+  }
+  get icone()      { return '☀️'; }
+  get corClasse()  { return 's3'; }
+  get fatorHoras() { return 1642; } // horas equivalentes sol pleno/ano (BR)
+}
+
+class EnergiaEolica extends FonteDeEnergia {
+  constructor(id, nome, capacidadeKW, custo) {
+    super(id, nome, 'Eólica', capacidadeKW, custo);
+  }
+  get icone()      { return '💨'; }
+  get corClasse()  { return 's1'; }
+  get fatorHoras() { return 2500; }
+}
+
+class EnergiaHidrica extends FonteDeEnergia {
+  constructor(id, nome, capacidadeKW, custo) {
+    super(id, nome, 'Hídrica', capacidadeKW, custo);
+  }
+  get icone()      { return '💧'; }
+  get corClasse()  { return 's2'; }
+  get fatorHoras() { return 4500; }
+}
+
+class Biomassa extends FonteDeEnergia {
+  constructor(id, nome, capacidadeKW, custo) {
+    super(id, nome, 'Biomassa', capacidadeKW, custo);
+  }
+  get icone()      { return '🌿'; }
+  get corClasse()  { return 's1'; }
+  get fatorHoras() { return 6000; }
+}
+
+// ════════════════════════════════════════════════
+// ESTRUTURA DE DADOS: LISTA
+// ════════════════════════════════════════════════
+
+class ListaDeFontes {
+  constructor() {
+    this._itens = [];
+  }
+
+  adicionar(fonte) {
+    this._itens.push(fonte);
+  }
+
+  remover(id) {
+    const idx = this._itens.findIndex(f => f.id === id);
+    if (idx === -1) return null;
+    const removida = this._itens[idx];
+    this._itens.splice(idx, 1);
+    return removida;
+  }
+
+  buscar(id) {
+    return this._itens.find(f => f.id === id) || null;
+  }
+
+  get itens() { return [...this._itens]; }
+  get tamanho() { return this._itens.length; }
+
+  get capacidadeTotal() {
+    return this._itens.reduce((s, f) => s + f.capacidadeKW, 0);
+  }
+
+  get producaoTotal() {
+    return this._itens.reduce((s, f) => s + f.calcularProducaoAnual(), 0);
+  }
+
+  get co2Total() {
+    return this._itens.reduce((s, f) => s + f.calcularReducaoCO2(), 0);
+  }
+
+  porTipo() {
+    const mapa = {};
+    for (const f of this._itens) {
+      mapa[f.tipo] = (mapa[f.tipo] || 0) + f.capacidadeKW;
+    }
+    return mapa;
+  }
+}
+
+// ════════════════════════════════════════════════
+// ESTRUTURA DE DADOS: PILHA (Histórico de ações)
+// ════════════════════════════════════════════════
+
+class PilhaDeHistorico {
+  constructor() {
+    this._elementos = [];
+  }
+
+  empilhar(acao) {
+    this._elementos.push(acao);
+  }
+
+  desempilhar() {
+    return this._elementos.pop() || null;
+  }
+
+  get topo() {
+    return this._elementos[this._elementos.length - 1] || null;
+  }
+
+  get vazia() { return this._elementos.length === 0; }
+  get elementos() { return [...this._elementos].reverse(); }
+  get tamanho() { return this._elementos.length; }
+}
+
+// ════════════════════════════════════════════════
+// FÁBRICA DE FONTES
+// ════════════════════════════════════════════════
+
+class FabricaDeEnergia {
+  static criar(tipo, id, nome, capacidade, custo) {
+    switch (tipo) {
+      case 'solar':    return new EnergiaSolar(id, nome, capacidade, custo);
+      case 'eolica':   return new EnergiaEolica(id, nome, capacidade, custo);
+      case 'hidrica':  return new EnergiaHidrica(id, nome, capacidade, custo);
+      case 'biomassa': return new Biomassa(id, nome, capacidade, custo);
+      default: throw new Error(`Tipo desconhecido: ${tipo}`);
+    }
+  }
+}
+
+// ════════════════════════════════════════════════
+// APLICAÇÃO
+// ════════════════════════════════════════════════
+
+const lista    = new ListaDeFontes();
+const historico = new PilhaDeHistorico();
+let   nextId   = 1;
+
+const tipoInfo = {
+  solar:    '☀️ Solar — Painéis fotovoltaicos convertem luz solar em energia elétrica. Fator: ~1642 h equivalentes/ano.',
+  eolica:   '💨 Eólica — Turbinas convertem energia cinética do vento. Fator: ~2500 h equivalentes/ano.',
+  hidrica:  '💧 Hídrica — Turbinas movidas pela força da água. Alta previsibilidade. Fator: ~4500 h/ano.',
+  biomassa: '🌿 Biomassa — Combustão de materiais orgânicos. Geração contínua. Fator: ~6000 h/ano.',
+};
+
+function atualizarTipoInfo() {
+  const tipo = document.getElementById('tipo').value;
+  document.getElementById('tipo-info').textContent = tipoInfo[tipo];
+}
+
+function adicionarFonte() {
+  const tipo      = document.getElementById('tipo').value;
+  const nome      = document.getElementById('nome').value.trim();
+  const capacidade = document.getElementById('capacidade').value;
+  const custo     = document.getElementById('custo').value;
+
+  if (!nome)      { alert('Informe o nome da instalação.'); return; }
+  if (!capacidade || capacidade <= 0) { alert('Informe uma capacidade válida.'); return; }
+
+  const fonte = FabricaDeEnergia.criar(tipo, nextId++, nome, capacidade, custo);
+  lista.adicionar(fonte);
+
+  historico.empilhar({
+    acao: 'ADICIONADA',
+    fonte: fonte,
+    icone: fonte.icone,
+    texto: `${fonte.nome} (${fonte.capacidadeKW} kW)`
+  });
+
+  document.getElementById('nome').value      = '';
+  document.getElementById('capacidade').value = '';
+  document.getElementById('custo').value     = '';
+
+  renderizar();
+}
+
+function removerFonte(id) {
+  const removida = lista.remover(id);
+  if (!removida) return;
+
+  historico.empilhar({
+    acao: 'REMOVIDA',
+    fonte: removida,
+    icone: removida.icone,
+    texto: `${removida.nome} (${removida.capacidadeKW} kW)`
+  });
+
+  renderizar();
+}
+
+function desfazer() {
+  const acao = historico.desempilhar();
+  if (!acao) { alert('Nenhuma ação para desfazer.'); return; }
+
+  if (acao.acao === 'ADICIONADA') {
+    lista.remover(acao.fonte.id);
+  } else if (acao.acao === 'REMOVIDA') {
+    lista.adicionar(acao.fonte);
+  }
+
+  renderizar();
+}
+
+function renderizar() {
+  renderizarStats();
+  renderizarLista();
+  renderizarBarras();
+  renderizarHistorico();
+}
+
+function renderizarStats() {
+  const cap  = lista.capacidadeTotal;
+  const prod = lista.producaoTotal;
+  const co2  = lista.co2Total;
+  const n    = lista.tamanho;
+
+  const fmt = (v, u) => v >= 1000 ? `${(v/1000).toFixed(1)}M${u}` : `${v.toFixed(1)}${u}`;
+
+  document.getElementById('stat-capacidade').textContent = fmt(cap, ' kW');
+  document.getElementById('stat-producao').textContent   = fmt(prod, ' MWh');
+  document.getElementById('stat-co2').textContent        = co2.toFixed(1) + ' t';
+  document.getElementById('stat-fontes').textContent     = n;
+  document.getElementById('hdr-fontes').textContent      = n;
+  document.getElementById('hdr-kw').textContent          = fmt(cap, ' kW');
+  document.getElementById('hdr-co2').textContent         = co2.toFixed(1) + ' t';
+}
+
+function renderizarLista() {
+  const el = document.getElementById('fonte-lista');
+  const itens = lista.itens;
+
+  if (itens.length === 0) {
+    el.innerHTML = '<div class="fonte-vazia">Nenhuma fonte adicionada. Use o formulário acima para começar.</div>';
+    return;
+  }
+
+  el.innerHTML = itens.map(f => `
+    <div class="fonte-item ${f.corClasse}">
+      <div class="fonte-icone">${f.icone}</div>
+      <div class="fonte-info">
+        <div class="fonte-nome">${f.nome}</div>
+        <div class="fonte-tipo">${f.tipo}</div>
+      </div>
+      <div class="fonte-stats">
+        <div class="fstat">
+          <div class="fstat-val">${f.capacidadeKW.toFixed(1)} kW</div>
+          <div class="fstat-lbl">Capacidade</div>
+        </div>
+        <div class="fstat">
+          <div class="fstat-val">${f.calcularProducaoAnual().toFixed(1)} MWh</div>
+          <div class="fstat-lbl">Prod./ano</div>
+        </div>
+        <div class="fstat">
+          <div class="fstat-val">${f.calcularReducaoCO2().toFixed(1)} t</div>
+          <div class="fstat-lbl">CO₂/ano</div>
+        </div>
+      </div>
+      <button class="btn btn-danger" onclick="removerFonte(${f.id})">✕</button>
+    </div>
+  `).join('');
+}
+
+const coresBarra = {
+  Solar:    '#facc15',
+  Eólica:   '#4ade80',
+  Hídrica:  '#2dd4bf',
+  Biomassa: '#86efac',
+};
+
+function renderizarBarras() {
+  const el   = document.getElementById('barras-tipos');
+  const dist = lista.porTipo();
+  const max  = Math.max(...Object.values(dist), 0.1);
+
+  if (Object.keys(dist).length === 0) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:.85rem;text-align:center;padding:2rem 0;">Nenhuma fonte cadastrada ainda.</div>';
+    return;
+  }
+
+  el.innerHTML = Object.entries(dist).map(([tipo, kw]) => `
+    <div class="bar-row">
+      <div class="bar-label" style="color:${coresBarra[tipo] || 'var(--green)'};">${tipo}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${(kw/max*100).toFixed(1)}%;background:${coresBarra[tipo] || 'var(--green)'};"></div>
+      </div>
+      <div class="bar-val">${kw.toFixed(1)} kW</div>
+    </div>
+  `).join('');
+}
+
+function renderizarHistorico() {
+  const el   = document.getElementById('historico');
+  const itens = historico.elementos;
+
+  if (itens.length === 0) {
+    el.innerHTML = '<div class="hist-vazia">Nenhuma ação registrada.</div>';
+    return;
+  }
+
+  const cores = { ADICIONADA: '#4ade80', REMOVIDA: '#f87171' };
+
+  el.innerHTML = itens.slice(0, 8).map((item, i) => `
+    <div class="hist-item">
+      <div class="hist-icone">${item.icone}</div>
+      <div class="hist-texto" style="color:${i === 0 ? cores[item.acao] : 'var(--muted)'};">
+        [${item.acao}] ${item.texto}
+      </div>
+    </div>
+  `).join('');
+}
+</script>
+</body>
+</html>
